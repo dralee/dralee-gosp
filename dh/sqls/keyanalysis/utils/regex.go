@@ -6,6 +6,7 @@ package utils
 
 import (
 	"regexp"
+	"strconv"
 )
 
 func Match(regex string, str string) bool {
@@ -19,6 +20,24 @@ func MatchAll(regex string, str string) []string {
 
 func FindGroup(regex string, str string) []string {
 	return regexp.MustCompile(regex).FindStringSubmatch(str)
+}
+
+func FindGroupNum(regex string, str string, index int) int {
+	groups := FindGroup(regex, str)
+	if groups == nil {
+		return -1
+	}
+
+	if index >= len(groups) {
+		panic("index out of range")
+	}
+
+	v, err := strconv.Atoi(groups[index])
+	if err != nil {
+		panic(err)
+	}
+
+	return v
 }
 
 func FindAllGroup(regex string, str string, index int) []string {

@@ -1,3 +1,7 @@
+/*
+主键分析
+2025.4.18 by dralee
+*/
 package main
 
 import (
@@ -8,7 +12,8 @@ import (
 )
 
 const (
-	KeyReg = `\((\d+),`
+	KeyReg       = `\((\d+),`
+	FileIndexReg = `FAT_(\d+)_`
 )
 
 type KeyAnalysis struct {
@@ -20,6 +25,7 @@ type KeyAnalysis struct {
 	quit       chan bool
 }
 
+// 实例化对象
 func NewKeyAnalysis(srcPath string) *KeyAnalysis {
 	return &KeyAnalysis{
 		srcPath:    srcPath,
@@ -31,6 +37,27 @@ func NewKeyAnalysis(srcPath string) *KeyAnalysis {
 	}
 }
 
+// // 忽略文件
+// func (k *KeyAnalysis) isIgnoreFile(srcPath string) bool {
+// 	fileName := utils.FileName(srcPath)
+// 	fileExt := utils.FileExt(srcPath)
+// 	if !strings.HasPrefix(fileName, "FAT_") {
+// 		return true
+// 	}
+
+// 	if strings.Contains(fileName, "xxljob") {
+// 		return true
+// 	}
+
+// 	if fileExt != ".sql" {
+// 		return true
+// 	}
+
+// 	num := utils.FindGroupNum(FileIndexReg, fileName, 1)
+// 	return num < 3
+// }
+
+// 扫描
 func (k *KeyAnalysis) Scan() bool {
 	if k.srcPath == "" {
 		return false
@@ -43,6 +70,10 @@ func (k *KeyAnalysis) Scan() bool {
 
 	for _, file := range files {
 		if file.FileType != utils.File {
+			continue
+		}
+		if IsIgnoreFile(file.FilePath) {
+			fmt.Printf("ignore file: %s\n", file.FilePath)
 			continue
 		}
 		wg.Add(1)
@@ -61,6 +92,7 @@ func (k *KeyAnalysis) Scan() bool {
 	return true
 }
 
+// 保存
 func (k *KeyAnalysis) Save(fileName string) bool {
 	content := strings.Join(k.keys, ",")
 	content += "===============================================\n"
@@ -71,6 +103,7 @@ func (k *KeyAnalysis) Save(fileName string) bool {
 	return err == nil
 }
 
+// 扫描单个文件
 func (k *KeyAnalysis) scanFile(fileName string, wg *sync.WaitGroup) bool {
 	defer wg.Done()
 
@@ -88,6 +121,7 @@ func (k *KeyAnalysis) scanFile(fileName string, wg *sync.WaitGroup) bool {
 	return true
 }
 
+// 监听主键
 func (k *KeyAnalysis) ListenKeys() {
 	for {
 		select {

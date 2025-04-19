@@ -38,6 +38,22 @@ func FileExists(path string) bool {
 	return err == nil
 }
 
+func FileName(path string) string {
+	return filepath.Base(path)
+}
+
+func FileDir(path string) string {
+	return filepath.Dir(path)
+}
+
+func FileExt(path string) string {
+	return filepath.Ext(path)
+}
+
+func FileWithoutExt(path string) string {
+	return filepath.Base(path[:len(path)-len(FileExt(path))])
+}
+
 func ListFiles(path string) []FileInfo {
 	files := []FileInfo{}
 	filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
