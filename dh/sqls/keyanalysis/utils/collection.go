@@ -12,3 +12,8 @@ func Contains[T comparable](arr []T, e T) bool {
 	}
 	return false
 }
+
+func ContainsKey[T comparable, V any](mapData map[T]V, e T) bool {
+	_, ok := mapData[e]
+	return ok
+}

@@ -34,20 +34,71 @@ func test() {
 
 }
 
+func testTrie() {
+	trie := utils.NewTrie(10)
+
+	// 要替换的关键词表
+	replaceMap := map[string]string{
+		"Go":      "Golang",
+		"OpenAI":  "Open AI",
+		"ChatGPT": "Chat GPT",
+		"Open":    "Close",
+	}
+
+	// 把关键词塞进Trie
+	for k := range replaceMap {
+		trie.Insert(k)
+	}
+
+	text := "I love Go and ChatGPT developed by OpenAI!I love Go Open and ChatGPT developed by OpenAI!I love Go and ChatGPT developed by OpenAI!"
+	newText := trie.Replace(text, replaceMap)
+
+	fmt.Println(newText)
+}
+
+func scan(srcSqlPath string) {
+	ka := NewKeyAnalysis(srcSqlPath)
+	ka.Scan()
+	ka.Save(fmt.Sprintf("%s/%s", OutputPath, "result.log"))
+	Info("keys: %v", ka.keys)
+	Info("existsKeys: %v", ka.existsKeys)
+}
+
+func replace(srcSqlPath, srcKeyFile, newKeyFile string) {
+	kp := NewKeyReplace(srcKeyFile, newKeyFile, srcSqlPath)
+	err := kp.Run()
+	if err != nil {
+		Error(err)
+	} else {
+		Info("replace success")
+	}
+}
+
 func main() {
-	source := flag.String("source", "", "source")
+	//testTrie()
+	//return
+	source := flag.String("source", "", "the sqls path for analysis or replace.")
+	optType := flag.String("optType", "", "operate type to analysis: Scan or Replace")
+	srcKeyFile := flag.String("srcKeyFile", "", "src key file for replace")
+	newKeyFile := flag.String("newKeyFile", "", "new key file for replace")
 	flag.Parse()
 
-	fmt.Println("source:", *source)
-	if !utils.FileExists(*source) {
-		fmt.Printf("source %s not exists\n", *source)
+	initLogger()
+	keyOperateType, err := ParseKeyOperateType(*optType)
+	if err != nil {
+		Error(err)
 		return
 	}
 
-	ka := NewKeyAnalysis(*source)
-	ka.Scan()
-	ka.Save("result.log")
-	fmt.Println("keys:", ka.keys)
-	fmt.Println("existsKeys:", ka.existsKeys)
+	Info("source: %s", *source)
+	if !utils.FileExists(*source) {
+		Errorf("source %s not exists\n", *source)
+		return
+	}
 
+	if keyOperateType == Scan {
+		scan(*source)
+	} else {
+		replace(*source, *srcKeyFile, *newKeyFile)
+	}
 }

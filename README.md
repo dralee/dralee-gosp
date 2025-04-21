@@ -9,3 +9,8 @@ go mod init xxx
 ```bash
 go run xx.go
 ```
+show help menu:
+```bash
+go run *.go -h
+go run *.go --help
+```

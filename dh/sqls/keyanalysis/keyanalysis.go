@@ -73,7 +73,7 @@ func (k *KeyAnalysis) Scan() bool {
 			continue
 		}
 		if IsIgnoreFile(file.FilePath) {
-			fmt.Printf("ignore file: %s\n", file.FilePath)
+			Info("ignore file: %s\n", file.FilePath)
 			continue
 		}
 		wg.Add(1)
@@ -85,21 +85,28 @@ func (k *KeyAnalysis) Scan() bool {
 		k.quit <- true
 	}()
 
-	fmt.Println("waiting for keys")
+	Info("waiting for keys")
 	<-k.quit
-	fmt.Println("scan all done")
+	Info("scan all done")
 
 	return true
 }
 
 // 保存
 func (k *KeyAnalysis) Save(fileName string) bool {
-	content := strings.Join(k.keys, ",")
-	content += "===============================================\n"
+	keyContent := strings.Join(k.keys, ",")
+	content := fmt.Sprintf("keys(%d):\n", len(k.keys))
+	content += keyContent
+	content += "\n\n===============================================\n"
 	for fileName, keys := range k.existsKeys {
 		content += fmt.Sprintf("%s: %s\n", fileName, strings.Join(keys, ","))
 	}
 	err := utils.WriteString(fileName, content)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	err = utils.WriteString(SrcKeyFile, keyContent)
 	return err == nil
 }
 
@@ -111,13 +118,14 @@ func (k *KeyAnalysis) scanFile(fileName string, wg *sync.WaitGroup) bool {
 		return false
 	}
 
+	Info("scanning \"%s\"...\n", fileName)
 	content := utils.ReadString(fileName)
 	keys := utils.FindAllGroup(KeyReg, content, 1)
 	//k.addKeys(fileName, keys)
 	for _, key := range keys {
 		k.channel <- [2]string{fileName, key}
 	}
-	fmt.Printf("scan \"%s\" done\n", fileName)
+	Info("scan \"%s\" done\n", fileName)
 	return true
 }
 
@@ -127,7 +135,7 @@ func (k *KeyAnalysis) ListenKeys() {
 		select {
 		case data, ok := <-k.channel:
 			if !ok {
-				fmt.Println("channel closed")
+				Info("channel closed")
 				return
 			}
 			fileName := data[0]
@@ -138,7 +146,7 @@ func (k *KeyAnalysis) ListenKeys() {
 			}
 			k.keys = append(k.keys, key)
 		case <-k.quit:
-			fmt.Println("quit")
+			Info("quit")
 			close(k.channel)
 			return
 		}

@@ -5,8 +5,10 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type FileType int // 文件类型
@@ -85,4 +87,13 @@ func Write(path string, data []byte) error {
 
 func WriteString(path string, data string) error {
 	return Write(path, []byte(data))
+}
+
+// 将map写入文件
+func WriteMapString(fileName string, strMap map[string]string) {
+	builder := strings.Builder{}
+	for k, v := range strMap {
+		builder.WriteString(fmt.Sprintf("%s:%s\n", k, v))
+	}
+	WriteString(fileName, builder.String())
 }
