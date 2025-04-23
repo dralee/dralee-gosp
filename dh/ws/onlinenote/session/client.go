@@ -2,9 +2,11 @@
 客户端
 2025.4.22 by dralee
 */
-package onlinenote
+package session
 
 import (
+	"draleeonlinenote/basic"
+	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -21,9 +23,11 @@ const (
 )
 
 type Client struct {
-	server OnlineServer
-	conn   *websocket.Conn
-	send   chan []byte
+	server   OnlineServer
+	conn     *websocket.Conn
+	send     chan []byte
+	userId   uint32
+	userName string
 }
 
 func (c *Client) write() {
@@ -75,11 +79,15 @@ func (c *Client) read() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				Errorf("error: %v", err)
+				basic.Errorf("error: %v", err)
 			}
 			break
 		}
-		message = append(message, Newline...)
-		c.server.Broadcast(message)
+		from := []byte(fmt.Sprintf("from user [%s]: ", c.userName))
+		result := make([]byte, 0)
+		result = append(result, from...)
+		result = append(result, message...)
+		result = append(result, Newline...)
+		c.server.Broadcast(result)
 	}
 }

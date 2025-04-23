@@ -5,11 +5,11 @@
 package main
 
 import (
-	onlinenote "draleeonlinenote/basic"
+	"draleeonlinenote/basic"
+	"draleeonlinenote/session"
 	"draleeonlinenote/utils"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -18,14 +18,15 @@ func main() {
 	port := flag.Int("port", 8012, "http service port")
 	flag.Parse()
 
-	s := onlinenote.NewServer()
+	dsn := "root:1234@tcp(127.0.0.1:3306)/notedb?charset=utf8mb4&parseTime=True&loc=Local"
+	s := session.NewServer(dsn)
 	utils.NewLogger("draleeonlinenote")
 	go s.Listen()
 	http.HandleFunc("/", s.Home)
 	http.HandleFunc("/ws", s.Accept)
-	fmt.Println("start server")
+	basic.Info("start server")
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", *host, *port), nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		basic.Errorf("ListenAndServe: %v", err)
 	}
 }
