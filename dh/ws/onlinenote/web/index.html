@@ -1,99 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<title>Chat Example</title>
-<script type="text/javascript">
-window.onload = function () {
-    var conn;
-    var msg = document.getElementById("msg");
-    var log = document.getElementById("log");
-
-    function appendLog(item) {
-        var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
-        if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #3498db;
+      --bg: #f9fafb;
+      --white: #ffffff;
+      --text: #333333;
+      --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      --radius: 0.75rem;
     }
 
-    document.getElementById("form").onsubmit = function () {
-        if (!conn) {
-            return false;
-        }
-        if (!msg.value) {
-            return false;
-        }
-        conn.send(msg.value);
-        msg.value = "";
-        return false;
-    };
-
-    if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
-        console.log(document.location.host)
-        conn.onclose = function (evt) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
-        };
-        conn.onmessage = function (evt) {
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
-            }
-        };
-    } else {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-};
-</script>
-<style type="text/css">
-html {
-    overflow: hidden;
-}
 
-body {
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: gray;
-}
+    body {
+      height: 100vh;
+      display: flex;
+      background-color: var(--bg);
+      overflow: hidden;
+      color: var(--text);
+    }
 
-#log {
-    background: white;
-    margin: 0;
-    padding: 0.5em 0.5em 0.5em 0.5em;
-    position: absolute;
-    top: 0.5em;
-    left: 0.5em;
-    right: 0.5em;
-    bottom: 3em;
-    overflow: auto;
-}
+    .container {
+      display: flex;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
 
-#form {
-    padding: 0 0.5em 0 0.5em;
-    margin: 0;
-    position: absolute;
-    bottom: 1em;
-    left: 0px;
-    width: 100%;
-    overflow: hidden;
-}
+    .sidebar {
+      width: 220px;
+      background-color: var(--primary);
+      color: white;
+      padding: 1.5rem 1rem;
+      transition: transform 0.3s ease, width 0.3s ease;
+    }
 
-</style>
+    .sidebar.hidden {
+      width: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .sidebar h3 {
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar li+li {
+      margin-top: 0.75rem;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      display: block;
+      padding: 0.25rem 0;
+      cursor: pointer;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .topbar {
+      background-color: var(--white);
+      padding: 1rem 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .editor {
+      flex: 1;
+      padding: 1.5rem;
+      background-color: var(--white);
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .toggle-btn {
+      background-color: var(--accent);
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    textarea,
+    input {
+      width: 100%;
+      border: 1px solid #d0d0d0;
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 1rem;
+      background-color: var(--bg);
+    }
+
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #d0d0d0;
+      border-radius: var(--radius);
+      padding: 1rem;
+      background-color: var(--bg);
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .chat-input input {
+      flex: 1;
+    }
+
+    .chat-input button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .view.active {
+      display: flex;
+    }
+  </style>
 </head>
+
 <body>
-<div id="log"></div>
-<form id="form">
-    <input type="submit" value="Send" />
-    <input type="text" id="msg" size="64" autofocus />
-</form>
+  <div class="container" id="vue-main">
+    <div class="sidebar" id="sidebar">
+      <h3>Menu</h3>
+      <ul>
+        <li><a onclick="showView('notepad')">记事本</a></li>
+        <li><a onclick="showView('chat')">聊天</a></li>
+      </ul>
+    </div>
+
+    <div class="main" id="main">
+      <div class="topbar">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+        <h2>操作区域</h2>
+      </div>
+      <div class="editor">
+        <div id="notepad" class="view active">
+          <textarea placeholder="请输入内容..."></textarea>
+        </div>
+        <div id="chat" class="view">
+          <div class="chat-box" id="chatBox">
+            <p v-for="message in messages"><strong>机器人:</strong> {{ message }}</p>
+          </div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="输入消息..." v-model="text"
+              @keydown="chatKeyDown($event)" />
+            <button @click="sendChat()">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function showView(id) {
+      const views = document.querySelectorAll('.view');
+      views.forEach(view => view.classList.remove('active'));
+      const activeView = document.getElementById(id);
+      if (activeView) {
+        activeView.classList.add('active');
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim();
+      if (msg) {
+        const chatBox = document.getElementById('chatBox');
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>你:</strong> ${msg}`;
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        input.value = '';
+      }
+    }
+  </script>
+  <script src="/lib/scripts/jquery-3.7.1.min.js"></script>
+  <script src="/lib/scripts/vue3/vue.global.js"></script>
+  <script src="/lib/scripts/index.js"></script>
 </body>
+
 </html>

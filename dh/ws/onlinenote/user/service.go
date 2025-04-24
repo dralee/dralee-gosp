@@ -82,6 +82,7 @@ func (u *DefaultUserService) Login(w http.ResponseWriter, r *http.Request) (stri
 	basic.Context().Login(user)
 	result := basic.NewResult(0, "success", LoginResponse{Token: token, UserId: user.Id, UserName: user.UserName, IsAdmin: isAdmin})
 	u.saveToken(w, r, token)
+	w.Header().Set(basic.ContentTypeKey, basic.ContentTypeJson)
 	w.Write([]byte(basic.ToJson(result)))
 	return token, nil
 }

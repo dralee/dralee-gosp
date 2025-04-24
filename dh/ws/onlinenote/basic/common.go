@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	TokenKey = "online.tk"
+	TokenKey        = "online.tk"
+	ContentTypeKey  = "Content-Type"
+	ContentTypeJson = "application/json"
 )
 
 var logger *utils.Logger
