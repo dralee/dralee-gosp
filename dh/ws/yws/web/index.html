@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+    <div>
+
+    </div>
+</body>
+<script type="module">
+import * as Y from 'yjs'
+import { WebsocketProvider } from 'y-websocket'
+
+const doc = new Y.Doc()
+const provider = new WebsocketProvider('ws://localhost:8080/ws?room=my-doc-id', 'my-doc-id', doc, {
+  params: { Authorization: 'Bearer YOUR_JWT_HERE' }
+})
+</script>
+<html>
