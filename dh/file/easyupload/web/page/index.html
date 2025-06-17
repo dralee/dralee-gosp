@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>大文件分片上传</title>
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+<body>
+
+  <h2>分片上传大文件</h2>
+  <!-- <input type="file" id="fileInput" /> -->
+   <label class="upload-label">
+    <span class="upload-icon">📤</span>
+    选择文件上传
+    <input type="file" id="fileInput" class="upload-input">
+  </label>
+  <button class="custom-btn" onclick="startUpload()">上传</button>
+  <div id="progress">
+    <div id="bar"></div>
+  </div>
+  <div id="log"></div>
+  <script src="static/js/crypto-js.min.js"></script>
+  <script src="static/js/index.js"></script>
+</body>
+</html>
