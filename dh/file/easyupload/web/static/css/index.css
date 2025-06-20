@@ -1,0 +1,57 @@
+body { font-family: sans-serif; padding: 2rem; }
+#progress { width: 100%; background: #eee; height: 20px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+#bar { width: 0%; height: 100%; background: #4caf50; transition: width 0.2s; }
+#log{
+    height: 800px;
+    overflow: hidden;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: #f5f5f5;
+    padding: 50px;
+    text-align: center;
+}
+
+.upload-label, .custom-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+/* 蓝色 - 选择文件 */
+.upload-label {
+  background-color: #4a90e2;
+  color: white;
+}
+.upload-label:hover {
+  background-color: #3b7acb;
+  transform: translateY(-2px);
+}
+
+/* 绿色 - 开始上传 */
+.custom-btn {
+  background-color: #43b97f;
+  color: white;
+  margin-left: 16px;
+}
+.custom-btn:hover {
+  background-color: #3ca56f;
+  transform: translateY(-2px);
+}
+
+/* 隐藏原始 input */
+.upload-input {
+  display: none;
+}

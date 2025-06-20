@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>大文件分片上传</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    #progress { width: 100%; background: #eee; height: 20px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+    #bar { width: 0%; height: 100%; background: #4caf50; transition: width 0.2s; }
+  </style>
+</head>
+<body>
+
+  <h2>分片上传大文件</h2>
+
+  <input type="file" id="fileInput" />
+  <button onclick="startUpload()">上传</button>
+
+  <div id="progress">
+    <div id="bar"></div>
+  </div>
+
+  <p id="status"></p>
+
+  <script src="static/js/crypto-js.min.js"></script>
+  <script>
+    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+
+    function getSha1Hash(input) {
+      return CryptoJS.SHA1(input).toString(CryptoJS.enc.Hex);
+    }
+
+    async function startUpload() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) {
+        alert('请选择一个文件');
+        return;
+      }
+
+      const fileID = await hashFileMeta(file.name + file.size); // 简单 hash
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(file.size, start + CHUNK_SIZE);
+        const chunk = file.slice(start, end);
+
+        const form = new FormData();
+        form.append("file_id", fileID);
+        form.append("index", i);
+        form.append("chunk", chunk);
+
+        const res = await fetch("/upload", {
+          method: "POST",
+          body: form
+        });
+
+        if (!res.ok) {
+          document.getElementById('status').innerText = `上传失败：第 ${i} 块`;
+          return;
+        }
+
+        updateProgress((i + 1) / totalChunks * 100);
+      }
+
+      // 合并
+      const mergeForm = new FormData();
+      mergeForm.append("file_id", fileID);
+      mergeForm.append("total_chunks", totalChunks);
+      mergeForm.append("filename", file.name);
+
+      const res = await fetch("/merge", {
+        method: "POST",
+        body: mergeForm
+      });
+
+      if (res.ok) {
+        document.getElementById('status').innerText = "✅ 上传成功，已合并";
+      } else {
+        document.getElementById('status').innerText = "❌ 合并失败";
+      }
+    }
+
+    async function uploadChunksConcurrently(chunks, maxConcurrency = 3) {
+      let index = 0;
+      async function next() {
+        if (index >= chunks.length) return;
+        const current = chunks[index++];
+        await current();
+        return next();
+      }
+
+      const promises = [];
+      for (let i = 0; i < maxConcurrency; i++) {
+        promises.push(next());
+      }
+      await Promise.all(promises);
+    }
+
+    function updateProgress(percent) {
+      document.getElementById("bar").style.width = percent + "%";
+    }
+
+    async function hashFileMeta(input) {
+      if (window.crypto && window.crypto.subtle) {
+        console.log('crypto.subtle is available');
+        const encoder = new TextEncoder();
+        const data = encoder.encode(input);
+        const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      } else {
+          console.log('crypto.subtle is not available');
+          return getSha1Hash(input);
+      }
+    }
+  </script>
+
+</body>
+</html>
