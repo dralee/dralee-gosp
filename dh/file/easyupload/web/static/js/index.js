@@ -20,8 +20,9 @@ function getSha1Hash(input) {
     return CryptoJS.SHA1(input).toString(CryptoJS.enc.Hex);
 }
 
-function updateProgress(percent) {
+function updateProgress(percent, i, total) {
     document.getElementById("bar").style.width = percent + "%";
+    document.getElementById("status").innerText = `上传进度：${i}/${total} (${percent.toFixed(2)}%)`;
 }
 
 function sliceFile(file) {
@@ -77,7 +78,7 @@ async function uploadChunksConcurrently(chunks, file, fileId) {
                 }
                 count++;
                 console.log("count:", count, "total: ", chunks.length);
-                updateProgress(count/chunks.length*100);
+                updateProgress(count/chunks.length*100, count, chunks.length);
             } catch (err) {
                 log(`❌ 分片 ${current.index} 失败: ${err.message}`);
                 throw err;

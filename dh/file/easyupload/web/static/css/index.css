@@ -2,7 +2,7 @@ body { font-family: sans-serif; padding: 2rem; }
 #progress { width: 100%; background: #eee; height: 20px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
 #bar { width: 0%; height: 100%; background: #4caf50; transition: width 0.2s; }
 #log{
-    height: 800px;
+    height: 920px;
     overflow: hidden;
     overflow-y: auto;
     margin-top: 1rem;
